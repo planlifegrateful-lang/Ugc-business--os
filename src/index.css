@@ -1,0 +1,70 @@
+:root {
+  --bg-deep: #050505;
+  --bg-panel: #0c0c0c;
+  --bg-elevated: #121212;
+  --bg-input: #0a0a0a;
+  --gold: #c9a227;
+  --gold-dim: #8a7020;
+  --gold-bright: #e8c547;
+  --gold-glow: rgba(201, 162, 39, 0.15);
+  --text-primary: #f5f0e6;
+  --text-secondary: #a89f8f;
+  --text-muted: #6b6358;
+  --border: #1f1c16;
+  --border-gold: rgba(201, 162, 39, 0.35);
+  --success: #3d8b5f;
+  --danger: #8b3d3d;
+  --radius: 8px;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dim);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  outline: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+.serif {
+  font-family: var(--font-serif);
+}
