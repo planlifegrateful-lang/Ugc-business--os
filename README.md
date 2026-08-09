@@ -1,49 +1,47 @@
 # UGC Ad Script Engine
 
-**OMEGA SWARM v10 · Limitless brand system**
+**OMEGA SWARM v10 · Limitless · Cloud-ready · 10/10**
 
-Production-ready React engine for generating structured UGC ad scripts via Anthropic (Claude) with live streaming.
+Production React engine for structured UGC ad scripts via Anthropic (live streaming).
 
-## Features
+**GitHub:** complete on `main`  
+**No phone / no HP required** — source of truth is this repo + cloud host.
 
-- **Live streaming** output from Anthropic API
-- **1–3 variants** per run with tabbed switcher
-- Structured parser: **HOOK / PROBLEM / BRIDGE / PROOF / CTA / DIRECTOR NOTE / ESTIMATED RUNTIME**
-- Copy + Download All (plain text) for creator handoff
-- Platform selector: TikTok, Reels, Facebook, YouTube Shorts (correct max duration)
-- 6 hook styles · 6 tone modes (incl. Spiritual/Taqwa) · 5 objectives
-- **Sharia compliance toggle** — halal framing, no riba language, ethical persuasion only
-- Session history (last 10) in localStorage
-- Full dark-luxury black/gold aesthetic
+## Live features
 
-## Quick start
+- Live streaming from Anthropic API
+- 1–3 variants with tab switcher
+- Structured: HOOK · PROBLEM · BRIDGE · PROOF · CTA · DIRECTOR NOTE · ESTIMATED RUNTIME
+- Copy + Download All for creator handoff
+- Platforms: TikTok · Reels · Facebook · YouTube Shorts
+- 6 hook styles · 6 tones (incl. Spiritual/Taqwa) · 5 objectives
+- Sharia compliance toggle
+- Session history (last 10) in browser localStorage
+- Dark-luxury black/gold Limitless UI
+
+## Cloud
+
+- Repo is Vite + React; deploy to Vercel (or any static host).
+- `vercel.json` included for SPA routing.
+- Project: `ugc-ad-script-engine` (Vercel team limitless-mindset)
+- Paste Anthropic API key in the header (browser-only storage).
+
+## Local (optional)
 
 ```bash
-cd ugc-ad-script-engine   # or root of this repo
+git clone https://github.com/planlifegrateful-lang/Ugc-business--os.git
+cd Ugc-business--os
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173 — paste your Anthropic API key in the header.
+## Related stack (GitHub)
 
-## Architecture target
+| Repo | Role |
+|------|------|
+| [Ugc-business--os](https://github.com/planlifegrateful-lang/Ugc-business--os) | This engine |
+| [ai-ugc](https://github.com/planlifegrateful-lang/ai-ugc) | Zero-API content agent |
+| [Planlife-agent0-openmanus](https://github.com/planlifegrateful-lang/Planlife-agent0-openmanus) | Video pipeline + Manus tasks |
+| [Ugc-business-os](https://github.com/planlifegrateful-lang/Ugc-business-os) | Integration shell |
 
-```
-Research → AI → UGC → Content → Leads → Digital Product → Funnel → Sales → Analytics → Optimization
-```
-
-This module is the **UGC script core**. Next builds:
-
-1. n8n webhook integration (Slack / Notion / Airtable)
-2. Batch mode (multi-product overnight)
-3. Creator brief PDF export
-
-## Stack
-
-- Vite + React 18 + TypeScript
-- `@anthropic-ai/sdk` streaming
-- Local-first (API key + history in browser storage only)
-
-## Repo
-
-Part of **Ugc-business--os** — https://github.com/planlifegrateful-lang/Ugc-business--os
+Manus cloud task: `OpenManus/TASK_PROMPT_cloud_complete.md` in Planlife-agent0-openmanus.
