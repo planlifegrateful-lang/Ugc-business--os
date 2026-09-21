@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate": "npm run build",
+    "ci": "npm run validate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
