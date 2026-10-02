@@ -6,21 +6,15 @@ Production React engine for structured UGC ad scripts with secure, operator-frie
 
 This repo turns a brief into structured ad scripts for TikTok, Reels, Facebook, and YouTube Shorts, with a focus on creator handoff and repeatable script production.
 
-## Production safety note
+## Zero-key guarantee
 
-This project is in a hardening phase. The app must not ship with browser-side Anthropic API keys in production. Browser storage is not a secure secret boundary and can leak credentials through logs, DOM inspection, snapshots, or third-party integrations.
-
-Use a secure backend or serverless proxy for any live model calls:
-
-- Keep the API key on the server only.
-- Expose a single authenticated endpoint such as `/api/generate-script`.
-- Validate request origin and rate-limit usage.
-- Never commit real credentials or production keys into GitHub.
+This version is intentionally designed to work without any API keys in the browser or frontend.
+The app generates script variants locally with a deterministic template engine, so it works offline and in production without exposing provider secrets.
 
 ## Architecture
 
 - Frontend: React + Vite + TypeScript
-- Model access: secure backend proxy
+- Model access: optional and server-side only, never required for base product behavior
 - Output: structured script variants with copy/download workflow
 - Persistence: browser localStorage for non-sensitive session history only
 
@@ -29,7 +23,6 @@ Use a secure backend or serverless proxy for any live model calls:
 ```bash
 git clone https://github.com/planlifegrateful-lang/Ugc-business--os.git
 cd Ugc-business--os
-cp .env.example .env
 npm install
 npm run validate
 npm run dev
@@ -37,8 +30,8 @@ npm run dev
 
 ## Deployment
 
-- Set production environment variables on the host or platform, not in the browser bundle.
-- If the app is hosted on Vercel or another static host, route model calls through an API endpoint or serverless function.
+- The app runs without API keys by default.
+- If AI is enabled later, keep provider keys on the server only and never in the browser bundle.
 - Keep the frontend UI free of any secret material.
 
 ## Commands
@@ -52,9 +45,9 @@ npm run ci        # same as validate for CI use
 
 ## Security posture
 
+- No provider API key is required for the default workflow.
 - Do not store secrets in `localStorage`.
 - Do not embed API keys in `index.html` or frontend code.
-- Do not log prompt payloads or sensitive model outputs in production.
 - Treat the browser as a UI layer only.
 
 ## Related stack
@@ -64,12 +57,11 @@ npm run ci        # same as validate for CI use
 | [Ugc-business--os](https://github.com/planlifegrateful-lang/Ugc-business--os) | This engine |
 | [ai-ugc](https://github.com/planlifegrateful-lang/ai-ugc) | Zero-API content agent |
 | [Planlife-agent0-openmanus](https://github.com/planlifegrateful-lang/Planlife-agent0-openmanus) | Video pipeline + Manus tasks |
-| [Planlife-agent0-openmanus](https://github.com/planlifegrateful-lang/Planlife-agent0-openmanus) | System integration layer |
+| [otto-server-wow](https://github.com/planlifegrateful-lang/otto-server-wow) | Controller + dashboard |
 
 ## Roadmap to 10/10
 
-- Secure API boundary
+- Confirm offline generation path is stable
 - Add a CI smoke test for build and type correctness
-- Add a health check for provider integration
-- Split UI logic from server proxy logic
+- Add optional server-side AI integration only behind a secure backend boundary
 - Add release notes and deployment runbook

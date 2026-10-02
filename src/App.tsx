@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Anthropic from '@anthropic-ai/sdk'
 import {
   CampaignConfig,
   PLATFORM_MAX,
@@ -38,8 +37,58 @@ function splitVariants(full: string): string[] {
     .filter(Boolean)
 }
 
+function generateOfflineScripts(config: CampaignConfig): string[] {
+  const product = config.productName.trim() || 'your product'
+  const audience = config.targetAudience.trim() || 'busy creators and small businesses'
+  const benefitText = (config.keyBenefits || 'saves time, removes friction, improves consistency')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(', ')
+
+  const hookPool = [
+    'Here’s the truth no one tells you...',
+    'If you’re still doing this, stop.',
+    'This is the shortcut nobody talks about.',
+    'I wish I knew this before I started.',
+    'Most people get this wrong.',
+  ]
+
+  const hook = hookPool[Math.floor(Math.random() * hookPool.length)]
+
+  return [
+    [
+      `HOOK: ${hook}`,
+      `PROBLEM: ${audience} keep trying to grow with ${product}, but they lose time, get inconsistent results, and feel stuck.` ,
+      `BRIDGE: The real solution isn’t more work — it’s a simpler system that helps you stay focused and get better outcomes.` ,
+      `PROOF: ${product} gives you ${benefitText} without the overwhelm.` ,
+      `CTA: Stop guessing. Start with ${product} today.` ,
+      `DIRECTOR NOTE: Keep the pacing fast, show a pain-point moment in the first 2 seconds, then transition to the solution.` ,
+      `ESTIMATED RUNTIME: 20-30 seconds`,
+    ].join('\n\n'),
+    [
+      `HOOK: ${product} is easier than it looks.`,
+      `PROBLEM: People think they need more tools, more effort, and more stress to get real results.`,
+      `BRIDGE: The better move is using a system that keeps things simple and effective from day one.`,
+      `PROOF: ${product} helps ${audience} improve with ${benefitText}.`,
+      `CTA: Try ${product} and make this process simpler.`,
+      `DIRECTOR NOTE: Use a clean shot list, show the product in action, and close with a confident CTA.`,
+      `ESTIMATED RUNTIME: 25-35 seconds`,
+    ].join('\n\n'),
+    [
+      `HOOK: This is why ${product} works.`,
+      `PROBLEM: Most people waste effort because they don’t have a repeatable system.`,
+      `BRIDGE: ${product} gives ${audience} a cleaner path to better results without the guesswork.`,
+      `PROOF: With ${benefitText}, it becomes easier to move faster and stay consistent.`,
+      `CTA: Use ${product} and see the difference for yourself.`,
+      `DIRECTOR NOTE: Open with a quick before/after style visual and end on a strong, direct CTA.`,
+      `ESTIMATED RUNTIME: 15-25 seconds`,
+    ].join('\n\n'),
+  ]
+}
+
 export default function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('anthropic-api-key') || '')
   const [config, setConfig] = useState<CampaignConfig>(DEFAULT_CONFIG)
   const [streaming, setStreaming] = useState(false)
   const [rawStream, setRawStream] = useState('')
@@ -52,11 +101,6 @@ export default function App() {
   useEffect(() => {
     setHistory(loadHistory())
   }, [])
-
-  useEffect(() => {
-    if (apiKey) localStorage.setItem('anthropic-api-key', apiKey)
-    else localStorage.removeItem('anthropic-api-key')
-  }, [apiKey])
 
   const updateConfig = useCallback((patch: Partial<CampaignConfig>) => {
     setConfig((prev) => {
@@ -75,10 +119,6 @@ export default function App() {
   }
 
   const generate = async () => {
-    if (!apiKey.trim()) {
-      setError('Paste your Anthropic API key first.')
-      return
-    }
     if (!config.productName.trim()) {
       setError('Product name is required.')
       return
@@ -93,34 +133,14 @@ export default function App() {
     const controller = new AbortController()
     abortRef.current = controller
 
-    const client = new Anthropic({
-      apiKey: apiKey.trim(),
-      dangerouslyAllowBrowser: true,
-    })
-
     try {
-      const stream = await client.messages.stream(
-        {
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4096,
-          system: buildSystemPrompt(config),
-          messages: [{ role: 'user', content: buildUserPrompt(config) }],
-        },
-        { signal: controller.signal }
-      )
-
-      let full = ''
-      for await (const event of stream) {
-        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-          full += event.delta.text
-          setRawStream(full)
-        }
-      }
-
+      const full = generateOfflineScripts(config).join('\n\n---VARIANT---\n\n')
       const parts = splitVariants(full)
       const parsed = parts.map(parseScript)
+
       setScripts(parsed)
       setActiveVariant(0)
+      setRawStream(full)
 
       const run: SessionRun = {
         id: crypto.randomUUID(),
@@ -129,6 +149,7 @@ export default function App() {
         scripts: parsed,
         activeVariant: 0,
       }
+
       setHistory((prev) => addRun(run, prev))
     } catch (err: unknown) {
       if ((err as Error)?.name === 'AbortError') return
@@ -169,7 +190,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header apiKey={apiKey} onApiKeyChange={setApiKey} />
+      <Header />
       <main className="main">
         <aside className="sidebar">
           <Controls
