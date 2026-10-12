@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Anthropic from '@anthropic-ai/sdk'
 import {
   CampaignConfig,
   PLATFORM_MAX,
@@ -7,7 +6,6 @@ import {
   Platform,
   SessionRun,
 } from './types'
-import { buildSystemPrompt, buildUserPrompt } from './lib/prompt'
 import { parseScript, scriptsToPlainText } from './lib/parser'
 import { addRun, loadHistory } from './lib/storage'
 import { Header } from './components/Header'
@@ -39,7 +37,7 @@ function splitVariants(full: string): string[] {
 }
 
 export default function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('anthropic-api-key') || '')
+  const [accessToken, setAccessToken] = useState('')
   const [config, setConfig] = useState<CampaignConfig>(DEFAULT_CONFIG)
   const [streaming, setStreaming] = useState(false)
   const [rawStream, setRawStream] = useState('')
@@ -52,11 +50,6 @@ export default function App() {
   useEffect(() => {
     setHistory(loadHistory())
   }, [])
-
-  useEffect(() => {
-    if (apiKey) localStorage.setItem('anthropic-api-key', apiKey)
-    else localStorage.removeItem('anthropic-api-key')
-  }, [apiKey])
 
   const updateConfig = useCallback((patch: Partial<CampaignConfig>) => {
     setConfig((prev) => {
@@ -75,8 +68,8 @@ export default function App() {
   }
 
   const generate = async () => {
-    if (!apiKey.trim()) {
-      setError('Paste your Anthropic API key first.')
+    if (!accessToken.trim()) {
+      setError('Enter the private app access token first.')
       return
     }
     if (!config.productName.trim()) {
@@ -93,29 +86,28 @@ export default function App() {
     const controller = new AbortController()
     abortRef.current = controller
 
-    const client = new Anthropic({
-      apiKey: apiKey.trim(),
-      dangerouslyAllowBrowser: true,
-    })
-
     try {
-      const stream = await client.messages.stream(
-        {
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4096,
-          system: buildSystemPrompt(config),
-          messages: [{ role: 'user', content: buildUserPrompt(config) }],
+      const response = await fetch('/api/generate-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + accessToken.trim(),
         },
-        { signal: controller.signal }
-      )
+        body: JSON.stringify({ config }),
+        signal: controller.signal,
+      })
 
-      let full = ''
-      for await (const event of stream) {
-        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-          full += event.delta.text
-          setRawStream(full)
-        }
+      const payload = await response.json().catch(() => null)
+      if (!response.ok) {
+        const code = payload && typeof payload.error === 'string'
+          ? payload.error
+          : `REQUEST_FAILED_${response.status}`
+        throw new Error(code)
       }
+
+      const full = payload && typeof payload.text === 'string' ? payload.text.trim() : ''
+      if (!full) throw new Error('EMPTY_RESPONSE')
+      setRawStream(full)
 
       const parts = splitVariants(full)
       const parsed = parts.map(parseScript)
@@ -169,7 +161,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header apiKey={apiKey} onApiKeyChange={setApiKey} />
+      <Header accessToken={accessToken} onAccessTokenChange={setAccessToken} />
       <main className="main">
         <aside className="sidebar">
           <Controls
