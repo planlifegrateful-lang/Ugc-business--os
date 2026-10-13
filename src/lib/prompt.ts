@@ -4,13 +4,15 @@ import { HOOK_LABELS, TONE_LABELS, OBJECTIVE_LABELS } from '../types'
 export function buildSystemPrompt(config: CampaignConfig): string {
   const shariaBlock = config.shariaCompliant
     ? `
-SHARIA / HALAL COMPLIANCE (MANDATORY):
+FAITH-CONSCIOUS DRAFTING NOTE — NOT A HALAL CERTIFICATION:
 - Use only ethical, truthful persuasion. No exaggeration or false claims.
 - Zero riba language, zero interest / loan framing, zero gambling metaphors.
 - Avoid any content that could be considered deceptive or manipulative.
 - Prefer gratitude, trust (amanah), benefit to the ummah, and clear value exchange.
 - If the product involves finance, frame it as asset-backed / profit-sharing / ethical only.
 - Tone may be Spiritual / Taqwa when appropriate — sincerity over hype.
+- Do not certify that a product, business, ingredient, or financial offer is halal or Sharia-compliant.
+- Do not invent Qur'an or Hadith quotations, references, scholarly rulings, or religious citations. Only use religious sources supplied and verified by the user; otherwise make no source-specific religious claim.
 `
     : ''
 
