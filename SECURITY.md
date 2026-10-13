@@ -26,3 +26,13 @@ If a secret is ever exposed:
 2. Rotate the credential in the provider dashboard.
 3. Remove and replace the leak in Git history if needed.
 4. Re-run the app in a clean environment before resuming deployments.
+
+
+## Server-side generation rollout
+
+- Never use `dangerouslyAllowBrowser` for provider credentials.
+- Set `ANTHROPIC_API_KEY` and a long random `PLG_APP_ACCESS_TOKEN` only in the deployment environment.
+- Do not use the provider key in the app's token field.
+- Verify invalid-token requests receive 401, missing configuration receives 503, and valid requests work only from the same origin.
+- Rotate any provider key that was ever entered into a public browser app or stored in browser localStorage. This repository inspection does not establish whether a live key was exposed.
+- The in-memory rate limiter is best-effort only; configure durable rate limiting before public exposure.
