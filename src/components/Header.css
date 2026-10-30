@@ -60,7 +60,7 @@
   gap: 16px;
 }
 
-.api-key-wrap {
+.access-code-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -72,7 +72,7 @@
   transition: border-color 0.2s;
 }
 
-.api-key-wrap:focus-within {
+.access-code-wrap:focus-within {
   border-color: var(--border-gold);
 }
 
@@ -81,14 +81,14 @@
   flex-shrink: 0;
 }
 
-.api-key-input {
+.access-code-input {
   flex: 1;
   font-size: 12px;
   color: var(--text-secondary);
   min-width: 0;
 }
 
-.api-key-input::placeholder {
+.access-code-input::placeholder {
   color: var(--text-muted);
 }
 
@@ -113,7 +113,7 @@
     padding: 12px 16px;
     gap: 12px;
   }
-  .api-key-wrap {
+  .access-code-wrap {
     min-width: 0;
     flex: 1;
   }

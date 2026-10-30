@@ -1,75 +1,74 @@
 # UGC Ad Script Engine
 
-Production React engine for structured UGC ad scripts with secure, operator-friendly workflows.
+React + Vite + TypeScript app for structured UGC ad scripts for TikTok, Reels, Facebook, and YouTube Shorts.
 
-## Mission
+## Security architecture
 
-This repo turns a brief into structured ad scripts for TikTok, Reels, Facebook, and YouTube Shorts, with a focus on creator handoff and repeatable script production.
+The browser calls `/api/generate-script`. The Anthropic SDK and `ANTHROPIC_API_KEY` stay in the server function. The browser never receives or stores the provider key.
 
-## Production safety note
+The UI asks for a private app access code. It is held in component memory only and sent as a Bearer token; it is not saved in localStorage or session history. This is a shared access code, not per-user identity. Do not distribute it publicly.
 
-This project is in a hardening phase. The app must not ship with browser-side Anthropic API keys in production. Browser storage is not a secure secret boundary and can leak credentials through logs, DOM inspection, snapshots, or third-party integrations.
+## Required server environment
 
-Use a secure backend or serverless proxy for any live model calls:
+Set these values in the server environment only:
 
-- Keep the API key on the server only.
-- Expose a single authenticated endpoint such as `/api/generate-script`.
-- Validate request origin and rate-limit usage.
-- Never commit real credentials or production keys into GitHub.
+- `ANTHROPIC_API_KEY`: Anthropic Console API key.
+- `APP_ACCESS_TOKEN`: random shared access code with at least 32 characters.
+- `APP_ALLOWED_ORIGINS`: exact comma-separated origins, without paths, trailing slashes, or wildcards. Production origins must use HTTPS.
 
-## Architecture
+The API rejects requests if any required setting is missing. It also validates the request body, limits it to 16 KB, checks the Origin header, uses a 45-second provider timeout, and returns sanitized error codes. It does not log prompts or provider responses.
 
-- Frontend: React + Vite + TypeScript
-- Model access: secure backend proxy
-- Output: structured script variants with copy/download workflow
-- Persistence: browser localStorage for non-sensitive session history only
+The current endpoint does not provide durable rate limiting or per-user accounts. Before public or multi-user release, add a persistent rate limiter and real identity/access management at the hosting layer.
 
 ## Local setup
 
+Use Node.js 22.6 or later.
+
 ```bash
-git clone https://github.com/planlifegrateful-lang/Ugc-business--os.git
-cd Ugc-business--os
-cp .env.example .env
 npm install
-npm run validate
-npm run dev
+cp .env.example .env.local
 ```
 
-## Deployment
+Edit `.env.local` locally:
+- Add your Anthropic API key to `ANTHROPIC_API_KEY`.
+- Set `APP_ACCESS_TOKEN` to a random value of at least 32 characters (for example, generate one with `openssl rand -hex 32`).
+- Keep `APP_ALLOWED_ORIGINS=http://localhost:3000` for local Vercel CLI development.
 
-- Set production environment variables on the host or platform, not in the browser bundle.
-- If the app is hosted on Vercel or another static host, route model calls through an API endpoint or serverless function.
-- Keep the frontend UI free of any secret material.
-
-## Commands
+Run the API and frontend together with the Vercel CLI:
 
 ```bash
-npm run dev      # local development
-npm run build     # production bundle
-npm run validate  # smoke validation via build
-npm run ci        # same as validate for CI use
+npx vercel dev
 ```
 
-## Security posture
+Open the local URL shown by Vercel and enter the private app access code in the header. `npm run dev` starts Vite only; it does not run the serverless API route.
 
-- Do not store secrets in `localStorage`.
-- Do not embed API keys in `index.html` or frontend code.
-- Do not log prompt payloads or sensitive model outputs in production.
-- Treat the browser as a UI layer only.
+## Checks
+
+```bash
+npm run test:api
+npm run build
+npm run validate
+```
+
+The API validation tests use Node's built-in test runner and TypeScript type stripping. The build type-checks both the frontend and server function before creating the Vite bundle.
+
+## Deployment notes
+
+Set all three environment variables in the deployment platform's encrypted server environment. Do not use Vite `VITE_*` variables for secrets. Add the exact production domain to `APP_ALLOWED_ORIGINS`; never use `*`.
+
+This repository contains a Vercel Function route. Vercel's Hobby plan is restricted to personal/non-commercial use. Because this engine supports a business workflow, do not deploy it commercially on Hobby; use a plan or hosting provider whose terms permit the intended commercial use. No deployment or hosting-plan status is assumed by this repository.
+
+## Existing behavior
+
+- One to three script variants.
+- Platform, hook, tone, objective, duration, and Sharia-compliant framing controls.
+- Browser-local session history for generated scripts only.
+- Copy and text-download actions.
 
 ## Related stack
 
-| Repo | Role |
-|------|------|
-| [Ugc-business--os](https://github.com/planlifegrateful-lang/Ugc-business--os) | This engine |
+| Repository | Role |
+|---|---|
+| [Ugc-business-os](https://github.com/planlifegrateful-lang/Ugc-business-os) | Python/SQLite affiliate-content operations |
 | [ai-ugc](https://github.com/planlifegrateful-lang/ai-ugc) | Zero-API content agent |
-| [Planlife-agent0-openmanus](https://github.com/planlifegrateful-lang/Planlife-agent0-openmanus) | Video pipeline + Manus tasks |
-| [Planlife-agent0-openmanus](https://github.com/planlifegrateful-lang/Planlife-agent0-openmanus) | System integration layer |
-
-## Roadmap to 10/10
-
-- Secure API boundary
-- Add a CI smoke test for build and type correctness
-- Add a health check for provider integration
-- Split UI logic from server proxy logic
-- Add release notes and deployment runbook
+| [Planlife-agent0-openmanus](https://github.com/planlifegrateful-lang/Planlife-agent0-openmanus) | Video pipeline and local automation |

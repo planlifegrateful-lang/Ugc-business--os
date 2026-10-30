@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Anthropic from '@anthropic-ai/sdk'
 import {
   CampaignConfig,
   PLATFORM_MAX,
@@ -39,7 +38,7 @@ function splitVariants(full: string): string[] {
 }
 
 export default function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('anthropic-api-key') || '')
+  const [accessCode, setAccessCode] = useState('')
   const [config, setConfig] = useState<CampaignConfig>(DEFAULT_CONFIG)
   const [streaming, setStreaming] = useState(false)
   const [rawStream, setRawStream] = useState('')
@@ -52,11 +51,6 @@ export default function App() {
   useEffect(() => {
     setHistory(loadHistory())
   }, [])
-
-  useEffect(() => {
-    if (apiKey) localStorage.setItem('anthropic-api-key', apiKey)
-    else localStorage.removeItem('anthropic-api-key')
-  }, [apiKey])
 
   const updateConfig = useCallback((patch: Partial<CampaignConfig>) => {
     setConfig((prev) => {
@@ -75,8 +69,8 @@ export default function App() {
   }
 
   const generate = async () => {
-    if (!apiKey.trim()) {
-      setError('Paste your Anthropic API key first.')
+    if (!accessCode.trim()) {
+      setError('Enter the private app access code first.')
       return
     }
     if (!config.productName.trim()) {
@@ -93,32 +87,41 @@ export default function App() {
     const controller = new AbortController()
     abortRef.current = controller
 
-    const client = new Anthropic({
-      apiKey: apiKey.trim(),
-      dangerouslyAllowBrowser: true,
-    })
-
     try {
-      const stream = await client.messages.stream(
-        {
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4096,
-          system: buildSystemPrompt(config),
-          messages: [{ role: 'user', content: buildUserPrompt(config) }],
+      const response = await fetch('/api/generate-script', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${accessCode.trim()}`,
         },
-        { signal: controller.signal }
-      )
-
-      let full = ''
-      for await (const event of stream) {
-        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-          full += event.delta.text
-          setRawStream(full)
+        body: JSON.stringify({ config }),
+        signal: controller.signal,
+      })
+      const payload = await response.json() as { text?: unknown; error?: string }
+      if (!response.ok) {
+        const messages: Record<string, string> = {
+          service_not_configured: 'The secure server is not configured yet.',
+          origin_not_allowed: 'This app address is not approved for generation.',
+          unauthorized: 'The private app access code is not correct.',
+          content_type_must_be_json: 'The request format was rejected.',
+          request_too_large: 'Shorten the campaign details and try again.',
+          invalid_request: 'The request could not be read. Please try again.',
+          invalid_campaign: 'Check the campaign fields and try again.',
+          generation_failed: 'The model service could not complete the request. Try again later.',
+          empty_provider_response: 'The model returned an empty response. Try again.',
+          request_aborted: 'Generation was stopped.',
         }
+        setError(messages[payload.error ?? ''] ?? 'Generation failed. Please try again.')
+        return
+      }
+      if (typeof payload.text !== 'string' || !payload.text.trim()) {
+        setError('The secure generation service returned an empty response.')
+        return
       }
 
-      const parts = splitVariants(full)
-      const parsed = parts.map(parseScript)
+      const full = payload.text
+      setRawStream(full)
+      const parsed = splitVariants(full).map(parseScript)
       setScripts(parsed)
       setActiveVariant(0)
 
@@ -132,8 +135,9 @@ export default function App() {
       setHistory((prev) => addRun(run, prev))
     } catch (err: unknown) {
       if ((err as Error)?.name === 'AbortError') return
-      const msg = err instanceof Error ? err.message : String(err)
-      setError(msg)
+      setError(err instanceof TypeError
+        ? 'Could not reach the secure generation endpoint. Use the deployed app or run it with Vercel CLI.'
+        : 'Generation failed. Please try again.')
     } finally {
       setStreaming(false)
       abortRef.current = null
@@ -169,7 +173,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header apiKey={apiKey} onApiKeyChange={setApiKey} />
+      <Header accessCode={accessCode} onAccessCodeChange={setAccessCode} />
       <main className="main">
         <aside className="sidebar">
           <Controls
