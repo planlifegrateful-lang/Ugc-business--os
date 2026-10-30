@@ -6,7 +6,6 @@ import {
   Platform,
   SessionRun,
 } from './types'
-import { buildSystemPrompt, buildUserPrompt } from './lib/prompt'
 import { parseScript, scriptsToPlainText } from './lib/parser'
 import { addRun, loadHistory } from './lib/storage'
 import { Header } from './components/Header'
@@ -49,6 +48,11 @@ export default function App() {
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
+    try {
+      localStorage.removeItem('anthropic-api-key')
+    } catch {
+      // Storage may be unavailable in restricted browser contexts.
+    }
     setHistory(loadHistory())
   }, [])
 
