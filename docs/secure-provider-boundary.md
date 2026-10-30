@@ -32,7 +32,7 @@ The browser must never call Anthropic directly. The provider key belongs only in
 
 ## Model lifecycle
 
-The previous frontend model ID `claude-sonnet-4-20250514` is retired on the Claude API. The server route uses `claude-sonnet-4-6`, which Anthropic lists as active and as the recommended replacement.
+The previous frontend model ID `claude-sonnet-4-20250514` is retired on the Claude API. The server route uses `claude-sonnet-5-5`, which Anthropic lists as active and as the recommended replacement.
 
 ## Verification
 

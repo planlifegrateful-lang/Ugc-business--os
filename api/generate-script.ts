@@ -7,7 +7,7 @@ type RuntimeGlobal = typeof globalThis & {
 }
 
 const env = (globalThis as RuntimeGlobal).process?.env ?? {}
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = 'claude-sonnet-5-5'
 const MAX_BODY_BYTES = 16 * 1024
 
 function jsonResponse(status: number, body: Record<string, unknown>): Response {
