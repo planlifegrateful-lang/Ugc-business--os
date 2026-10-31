@@ -86,13 +86,12 @@ test('bounded body reader cancels an oversized streamed body without Content-Len
 })
 
 test('bounded body reader rejects an oversized declared Content-Length before reading', async () => {
-  let pulled = false
+  let cancelled = false
   const stream = new ReadableStream<Uint8Array>({
     pull(controller) {
-      pulled = true
       controller.enqueue(new Uint8Array([1]))
     },
-    cancel() {},
+    cancel() { cancelled = true },
   })
   const request = new Request('https://example.test/api', {
     method: 'POST',
@@ -102,7 +101,7 @@ test('bounded body reader rejects an oversized declared Content-Length before re
   } as RequestInit)
 
   assert.deepEqual(await readBoundedBody(request, 16), { ok: false, reason: 'too_large' })
-  assert.equal(pulled, false)
+  assert.equal(cancelled, true)
 })
 
 test('bounded body reader rejects malformed UTF-8', async () => {
