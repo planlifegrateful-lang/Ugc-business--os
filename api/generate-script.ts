@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { buildSystemPrompt, buildUserPrompt } from '../src/lib/prompt.ts'
 import { validateCampaignConfig } from './validation.ts'
+import { readBoundedBody } from './request-body.ts'
 
 type RuntimeGlobal = typeof globalThis & {
   process?: { env?: Record<string, string | undefined> }
@@ -78,16 +79,14 @@ export default {
       return jsonResponse(401, { error: 'unauthorized' })
     }
 
-    let rawBody: string
-    try {
-      rawBody = await request.text()
-    } catch {
+    const boundedBody = await readBoundedBody(request, MAX_BODY_BYTES)
+    if (!boundedBody.ok) {
+      if (boundedBody.reason === 'too_large') {
+        return jsonResponse(413, { error: 'request_too_large' })
+      }
       return jsonResponse(400, { error: 'invalid_request' })
     }
-
-    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
-      return jsonResponse(413, { error: 'request_too_large' })
-    }
+    const rawBody = boundedBody.text
 
     let body: unknown
     try {
