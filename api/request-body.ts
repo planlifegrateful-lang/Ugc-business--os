@@ -18,9 +18,11 @@ export async function readBoundedBody(
   if (declaredLength !== null) {
     const normalizedLength = declaredLength.trim()
     if (!/^\d+$/.test(normalizedLength)) {
+      try { await request.body?.cancel() } catch { /* best-effort request cleanup */ }
       return { ok: false, reason: 'invalid_length' }
     }
     if (Number(normalizedLength) > maxBytes) {
+      try { await request.body?.cancel() } catch { /* best-effort request cleanup */ }
       return { ok: false, reason: 'too_large' }
     }
   }
