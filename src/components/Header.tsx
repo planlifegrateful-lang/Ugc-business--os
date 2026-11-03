@@ -2,11 +2,11 @@ import { Key, Shield } from 'lucide-react'
 import './Header.css'
 
 interface Props {
-  apiKey: string
-  onApiKeyChange: (v: string) => void
+  accessCode: string
+  onAccessCodeChange: (value: string) => void
 }
 
-export function Header({ apiKey, onApiKeyChange }: Props) {
+export function Header({ accessCode, onAccessCodeChange }: Props) {
   return (
     <header className="header">
       <div className="header-left">
@@ -17,21 +17,22 @@ export function Header({ apiKey, onApiKeyChange }: Props) {
         </div>
       </div>
       <div className="header-right">
-        <div className="api-key-wrap">
+        <div className="access-code-wrap">
           <Key size={14} className="key-icon" />
           <input
             type="password"
-            placeholder="Anthropic API key"
-            value={apiKey}
-            onChange={(e) => onApiKeyChange(e.target.value)}
-            className="api-key-input"
+            placeholder="Private app access code"
+            aria-label="Private app access code"
+            value={accessCode}
+            onChange={(event) => onAccessCodeChange(event.target.value)}
+            className="access-code-input"
             autoComplete="off"
             spellCheck={false}
           />
         </div>
         <div className="badge">
           <Shield size={12} />
-          <span>Local-first</span>
+          <span>Server-side key</span>
         </div>
       </div>
     </header>
