@@ -1,7 +1,8 @@
 {
   "functions": {
     "api/generate-script.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "supportsCancellation": true
     }
   },
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
